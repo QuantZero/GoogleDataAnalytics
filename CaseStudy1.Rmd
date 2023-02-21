@@ -1,0 +1,269 @@
+---
+title: "Case Study - Bellabeats"
+author: "James Butcher"
+date: "2022-12-25"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+In this case study,  we are positioned as a Junior Data Analyst working at Bellabeats, a high-tech firm that specializes on health tracking smart devices for women. 
+
+The company provides us with a smart device usage data which is available for download at this link https://www.kaggle.com/datasets/arashnic/fitbit.
+
+The primary objective is to find trends, patterns or any indications that might lead us to useful insights for Bellabeats marketing analytics team. 
+
+## Phase 1 - Ask
+    
+In the first step,  we define the context, background, key players, problem and objectives of our case. 
+    
+### 1.1 Background
+    
+Bellabeat is a high-tech manufacturer of beautifully-designed health-focused smart products for women since 2013. Inspiring and empowering women with knowledge about their own health and habits, Bellabeat has grown rapidly and quickly positioned itself as a tech-driven wellness company for females.
+    
+ The co-founder and Chief Creative Officer, Urška Sršen is confident that an analysis of non-Bellebeat consumer data (ie. FitBit fitness tracker usage data) would reveal more opportunities for growth.
+    
+### 1.2 Business Task
+    
+Analyze FitBit fitness tracker data to gain insights into how consumers are using the FitBit app and **discover trends** for Bellabeat marketing strategy.
+    
+### 1.3 Business Objectives
+    
+- What are the trends identified?
+- How could these trends apply to Bellabeat customers?
+- How could these trends help influence Bellabeat marketing strategy?
+    
+### 1.4 Deliverables
+- A clear summary of the business task
+- A description of all data sources used
+- Documentation of any cleaning or manipulation of data
+- A summary of analysis
+- Supporting visualizations and key findings
+- High-level content recommendations based on the analysis
+    
+### 1.5 Key Stakeholders
+    
+**Urska Srsen:** Bellabeat’s cofounder and Chief Creative Officer
+
+**Sando Mur:** Mathematician and Bellabeat’s cofounder; key member of the Bellabeat executive team
+
+**Bellabeat marketing analytics team:** A team of data analysts responsible for collecting, analyzing, and reporting data that helps guide Bellabeat’s marketing strategy.
+
+## Phase 2 - Prepare
+    
+In the second step, we clarify the data sources and limitations of the data set.
+    
+### 2.1 Data Sources
+    
+ I will use **FitBit Fitness Tracker Data**. Data is generated from a survey on Amazon Mechanical Turk between 12 March 2016 to 12 May 2016. This Kaggle data set contains personal fitness tracker from thirty fitbit users. Thirty eligible Fitbit users consented to the submission of personal tracker data, including minute-level output for physical activity, heart rate, and sleep monitoring. It includes information about daily activity, steps, and heart rate that can be used to explore user habits.
+    
+### 2.2 Limitations of The Data
+    
+- Data set only focuses on 30 users. It might be considered as a small sample size.
+- The data was generated in 2016. Which is 7 years ago at the time of analysis. The accuracy of collected data might be decreased due to changing user habits, activity levels and calorie intake.
+- Data was generated via survey from Amazon Mechanical Turk. Since it is a third party data set, we cannot assess the integrity, clarity, accuracy and transparency of the data.
+    
+### 2.3 Is Data ROCCC?
+    
+ According to Google, reliable data sources are ROCCC which stands for Reliable, Original, Comprehensive, Current and Cited. For this data set;
+    
+- Reliable — LOW — Not reliable as it only has 30 participants
+- Original — LOW — Third party provider (Amazon Mechanical Turk)
+- Comprehensive — MEDIUM — Parameters match most of Bellabeat products’ parameters
+- Current — LOW — Data is 5 years old and may not be relevant
+- Cited — LOW — Data collected from third party, hence unknown
+    
+Overall, the data set is considered low quality data and it is not recommended to produce business recommendations based on this data.
+    
+### 2.4 Data Filtering & Selection
+    
+Among 18 data sets provided in this case study, only 6 files are relevant to our research. These are; 
+    
+- dailyActivity_merged.csv
+- sleepDay_merged.csv
+- dailyCalories_merged.csv
+- dailySteps_merged.csv
+- weightLogInfo_merged.csv
+- dailyIntensities_merged.csv
+    
+ Out of these 6 data sets, dailyActivity_merged.csv already includes crucial activity and calorie data from dailySteps_merged.csv, dailyIntensities_merged.csv and dailyCalories_merged.csv files so we disregards these files for further analysis. 
+    
+Out of 3 remaining files, we check weightLogInfo_merged.csv data set by using n_distinct() function on ID column and we can observe that there are only 8 unique participants in this data set which is considered a small sample to conduct further analysis. Therefore, we will not analyze weightLogInfo_merged.csv any further. Following the same method for the remaining 2 data sets, we observe there are 33 unique participants on dailyActivity_merged.csv and 24 unique participants on sleepDay_merged.csv so we can conclude that these data sets are eligible for further analysis.
+
+## Phase - 3 Process
+    
+During the process phase we will import & explore the data and start the data cleaning process. We will check for missing or null values, reformat data types and perform preliminary statistical analysis.
+
+### 3.1 Load data & import required packages. 
+```{r setup, include=TRUE}
+library(tidyverse)
+library(readr)
+library(dplyr)
+library(lubridate)
+```
+
+###  Preview and explore data
+```{r assign variables}
+data <- read_csv("/Users/yigitkasapoglu/Desktop/CaseStudy1_R/dailyActivity_merged.csv")
+sleep_data <- read_csv("/Users/yigitkasapoglu/Desktop/CaseStudy1_R/sleepDay_merged.csv")
+head(data)
+```
+
+### 3.2 Check for missing values 
+```{r }
+sum(is.na(data))
+sum(is.na(sleep_data))
+```
+***No missing values found.*** 
+
+### 3.3 Check for null values
+```{r}
+sum(is.null(data))
+sum(is.null(sleep_data))
+```
+***No null values found.***
+
+### 3.4 Check for structural errors and incorrect data types
+```{r}
+str(data)
+str(sleep_data)
+```
+***We can see that ActivityDate column on the first data set and SleepDay column on the second data set have incorrect data types.***
+
+### Reformat incorrect date data
+```{r}
+data$ActivityDate <- as.Date(data$ActivityDate, "%m/%d/%Y")
+sleep_data$SleepDay <- as.Date(sleep_data$SleepDay, "%Y-%m-%d")
+```
+Both data types are reformatted from ***character*** to ***date*** and ready to analyze.
+
+### 3.5 Check for duplicate IDs
+```{r}
+n_distinct(data$Id)
+n_distinct(sleep_data$Id)
+```
+We observe there are 33 participants on the first data set instead of 30 as claimed. Also there are 24 participants on the second data set which indicates that we do not have sleep data of 6 unique participants.
+
+### 3.6 Add new column "WeekDays" for further analysis
+```{r}
+data$WeekDays <- wday(data$ActivityDate, TRUE)
+```
+Now we can deepen our analysis by checking which weekdays has more logs and activities. 
+
+### Relocate Weekdays column for ease of use
+```{r}
+data %>% relocate("WeekDays", .after = "ActivityDate")
+```
+
+### 3.7 Create new column "TotalMinutes"
+```{r}
+data$TotalMinutes <- data$SedentaryMinutes + data$LightlyActiveMinutes + data$FairlyActiveMinutes + data$VeryActiveMinutes
+```
+Now, we can observe the total count of logged activity minutes.
+
+### Create new column "TotalHours" to see activity data in hours
+```{r}
+data$TotalHours <- data$TotalMinutes/60
+```
+
+
+## Phase 4 - Analyze 
+We will start our analysis by checking the summarized statistics of the data set and adding charts to see if there are any trends or patterns to identify. 
+
+```{r}
+summary(data)
+summary(sleep_data)
+```
+
+***Findings based on summarized statistics***
+
+- ***Average total steps*** per day is  ***7638*** and 5.490 km.
+- Average ***sedentary minutes*** calculated as 991.2 or ***16.5 hours***
+- Average lightly active minutes calculated as 192.8 or 3.2 hours.
+- Average fairly active minutes calculated as 13.56
+- Average very active minutes calculated as 21.16
+- ***Total active minutes on average*** calculated as 1218 or ***20.3 hours***/month
+- Average ***daily calories*** burnt calculated as 2304.
+- Average total ***sleep*** is 419 minutes or ***6.9 hours*** .
+
+### 4.1 Plot a histogram chart to analyze user login frequency
+```{r}
+ggplot(data = data, aes(x = `WeekDays`)) + 
+    geom_histogram(binwidth = 1, fill = "slateblue2", color = "slateblue2", stat="count") + 
+    labs(x = "Day", y = "Login Frequency", title = "Weekly Frequency of User Logins") + 
+    theme_classic() + 
+    theme(axis.line = element_line(colour = "black"),
+          panel.grid.major = element_line(colour = "grey"))
+```
+
+We observe that ***Tuesdays, Wednesdays and Thursdays*** have the highest activity logs; therefore, we can conclude that participants are using the app mostly during weekdays. 
+
+### 4.2 Plot a bar chart to compare TotalSteps by WeekDays 
+```{r}
+ggplot(data, aes(x=WeekDays, y=TotalSteps, fill=WeekDays)) +
+    geom_bar(stat="identity", width=0.5) +
+    labs(title="Total Steps by Weekday", x="Weekday", y="Total Steps")
+```
+
+Data suggests that users were most active on Tuesdays Wednesday, Fridays and Saturdays. 
+
+## Phase 5 - Share
+In this section we will generate several charts to share our findings and insights. 
+
+```{r}
+ggplot(data, aes(x =ActivityDate, y =TotalSteps, group = 1)) +
+    geom_line(stat = "summary", color = "blue") +
+    labs(title = "Average Steps per Day", x = "Date", y = "Average Steps")
+```
+
+We can see in the chart above that the average steps per day is 7638 which is below the recommended amount by CDC(https://www.healthline.com/health/average-steps-per-day#guidelines). 
+
+
+```{r}
+ggplot(data, aes(x =ActivityDate, y =SedentaryMinutes, group = 1)) +
+    geom_line(stat = "summary", color = "red") +
+    labs(title = "Average Sedentary Minutes per Day", x = "Date", y = "Sedentary Minutes")
+```
+
+Another important finding is that the Average Sedentary Minutes Per Day is 16.5 hours. This data indicates that users are spending most of their time in non-active states which may bring increased health risks and other factors of related risks in the long term. https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2996155/ 
+
+
+```{r}
+ggplot(data, aes(x =ActivityDate, y =Calories, group = 1)) +
+    geom_line(stat = "summary", color = "green") +
+    labs(title = "Average Calories Burnt per Day", x = "Date", y = "Calories Burnt")
+```
+
+As we can see in the table above, users burnt 2304 calories on average per day. According to the recent findings,  most female adults need 1,600 – 2,200 calories per day, while adult males need 2,200–3,000 calories per day. Based on this data, we can conclude that the users burnt enough calories to  maintain their weight most of the time. These daily calorie goals can be adjusted based on personal goals. 
+https://www.healthline.com/health/fitness-exercise/how-many-calories-do-i-burn-a-day#daily-calorie-burn-by-intent 
+
+
+
+## Phase 6 - Act
+To summarize the results of our analysis and communicate possible solutions, we have several key points that will be addressed below.
+
+- ***Average total steps*** per day is  ***7.638*** which is below the recommended amount of 10.000 steps per day.
+
+***Recommended Action:*** The company can motive users to increase step counts by offering incentives & rewards to users who accomplish 10.000 steps milestone everyday. A streak counting tool can be added to promote consistency and more reward opportunities. This will also motivate users to log in to the app everyday to claim rewards thus, increasing user time spent on the app. Another feature for collaboration with friends can be added, so users can invite their friends & family to join them and achieve 10.000 steps per day together. This addition might help users to achieve their goals while helping the company to increase its number of users.
+
+- Average ***sedentary minutes*** calculated as 991.2 or ***16.5 hours***. This data shows that the users spent majority of their time in non-active states. 
+
+***Recommended Action:*** Bellabeats tracker sensors gathers activity data from its users constantly. The company can address to this problem by adding a feature to the app that sends regular notifications to the user after reaching a certain threshold of sedentary minutes per day. Users can be motivated to stay active throughout the day by daily activity rewards and incentives. 
+
+- Average ***daily calories*** burnt calculated as 2304. 
+
+***Recommended Action:*** The company can provide nutritional assistance by offering on-demand nutritionist services. Moreover, a nutrition education page can be added to the app so users can better understand their diets and how to manage daily calorie intake based on personal goals. 
+
+- Average total ***sleep*** is 419 minutes or ***6.9 hours*** .
+
+***Recommended Action:*** The Bellabeats app can be used to track sleeping patterns of the users and offer in-depth insights about their sleeping habits accompanied by advice on how to improve their sleep. This feature can be monetized by offering personalized sleeping assistance and more tracking features through the app. 
+
+
+### Conclusion
+
+In this brief report, we have gathered, processed, cleaned and analyzed the Fitbit Data to better understand user activity patterns and trends. We have found several key patterns & trends which led us to possible growth opportunities and improvements on user activities. Finally, we implemented these possible improvements as actionable insights to the Bellabeats app and marketing team.  We have accomplished all business objectives &  deliverables required by the company and offered further monetization opportunities.
+
+
+### References
+- MD, Kaggle
+- Katie Huang, Kaggle
